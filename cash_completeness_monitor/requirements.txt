@@ -1,0 +1,19 @@
+# Cash Completeness Monitor Dependencies
+# Core dependencies
+requests>=2.31.0
+python-dateutil>=2.8.2
+
+# Development dependencies (optional)
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.7.0
+flake8>=6.0.0
+
+# AWS Lambda dependencies (if deploying to AWS)
+boto3>=1.28.0
+
+# Google Cloud Functions dependencies (if deploying to GCP)
+functions-framework>=3.4.0
+
+# Logging and monitoring
+structlog>=23.1.0
