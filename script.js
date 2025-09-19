@@ -8,6 +8,10 @@ class StockPredictionGame {
         this.score = 0;
         this.ticker = '';
         this.startDate = null;
+        this.previousPrice = null; // Track previous price for variance monitoring
+        
+        // Initialize Slack Alert System
+        this.slackAlerts = new SlackAlertSystem();
         
         this.initializeEventListeners();
     }
@@ -159,6 +163,13 @@ class StockPredictionGame {
         this.currentDateIndex = 7; // Start at the randomly selected date (8th item, 0-indexed)
         this.score = 0;
         
+        // Reset Slack alert stats for new game
+        this.slackAlerts.resetStats();
+        this.previousPrice = this.gameData[this.currentDateIndex].close;
+        
+        // Check for initial variance alerts
+        this.performVarianceChecks();
+        
         // Update display
         this.updateStockInfo();
         this.updateGameDisplay();
@@ -285,8 +296,20 @@ class StockPredictionGame {
             this.score++;
         }
         
+        // Slack Alerts: Check prediction accuracy and daily price change
+        await this.slackAlerts.checkPredictionAccuracy(isCorrect, this.ticker);
+        if (this.previousPrice) {
+            await this.slackAlerts.checkDailyPriceChange(this.previousPrice, nextData.close, this.ticker);
+        }
+        
+        // Update previous price for next comparison
+        this.previousPrice = nextData.close;
+        
         // Move to next day
         this.currentDateIndex++;
+        
+        // Perform additional variance checks
+        this.performVarianceChecks();
         
         // Show result
         const resultDiv = document.getElementById('resultMessage');
@@ -327,7 +350,12 @@ class StockPredictionGame {
         this.chart.update('active');
     }
 
-    resetGame() {
+    async resetGame() {
+        // Send summary report before resetting if there were predictions
+        if (this.slackAlerts.gameStats.totalPredictions > 0) {
+            await this.slackAlerts.sendSummaryReport(this.ticker, this.gameData);
+        }
+        
         // Reset all game state
         this.chart = null;
         this.stockData = [];
@@ -336,6 +364,10 @@ class StockPredictionGame {
         this.score = 0;
         this.ticker = '';
         this.startDate = null;
+        this.previousPrice = null;
+        
+        // Reset Slack alert stats
+        this.slackAlerts.resetStats();
         
         // Reset UI
         document.getElementById('tickerInput').value = '';
@@ -380,9 +412,32 @@ class StockPredictionGame {
     hideError() {
         document.getElementById('error').style.display = 'none';
     }
+
+    /**
+     * Perform various variance checks for Slack alerts
+     */
+    async performVarianceChecks() {
+        if (!this.stockData || this.stockData.length === 0) {
+            return;
+        }
+
+        try {
+            // Check price variance using available stock data
+            await this.slackAlerts.checkPriceVariance(this.stockData, this.ticker);
+            
+            // Check volume variance using available stock data
+            await this.slackAlerts.checkVolumeVariance(this.stockData, this.ticker);
+            
+        } catch (error) {
+            console.error('Error performing variance checks:', error);
+        }
+    }
 }
 
 // Initialize the game when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new StockPredictionGame();
+    const game = new StockPredictionGame();
+    
+    // Initialize configuration panel
+    const configPanel = new ConfigPanel(game.slackAlerts);
 });
