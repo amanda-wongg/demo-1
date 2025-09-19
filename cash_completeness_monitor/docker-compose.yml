@@ -1,0 +1,65 @@
+# Docker Compose for Cash Completeness Monitor
+# For local development and testing
+
+version: '3.8'
+
+services:
+  cash-monitor:
+    build: .
+    container_name: cash-completeness-monitor
+    environment:
+      # Required environment variables
+      - REDASH_BASE_URL=${REDASH_BASE_URL}
+      - REDASH_API_KEY=${REDASH_API_KEY}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_CHANNEL=${SLACK_CHANNEL}
+      - REDASH_QUERIES=${REDASH_QUERIES}
+      
+      # Optional environment variables
+      - SIGNIFICANCE_THRESHOLD=${SIGNIFICANCE_THRESHOLD:-100.0}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - QUERY_TIMEOUT=${QUERY_TIMEOUT:-300}
+      - STATE_STORAGE_PATH=/app/data/state.json
+    
+    volumes:
+      # Persist state data
+      - cash_monitor_data:/app/data
+      # Mount config file if using file-based config
+      - ./config.json:/app/config.json:ro
+    
+    restart: unless-stopped
+    
+    # Run on a schedule using cron-like syntax
+    # This requires an external scheduler like cron or a job runner
+    # For production, use cloud schedulers instead
+    
+    # Uncomment for one-time execution
+    # command: python main.py
+    
+    # Uncomment for interactive mode
+    # stdin_open: true
+    # tty: true
+    # command: /bin/bash
+
+  # Optional: Redis for more sophisticated state management
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: cash-monitor-redis
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+
+volumes:
+  cash_monitor_data:
+    driver: local
+  # redis_data:
+  #   driver: local
+
+# Example .env file contents:
+# REDASH_BASE_URL=https://your-redash-instance.com
+# REDASH_API_KEY=your-redash-api-key
+# SLACK_BOT_TOKEN=xoxb-your-slack-bot-token
+# SLACK_CHANNEL=#monthly-reconciliations
+# REDASH_QUERIES=[{"query_id":123,"name":"BAI2 Check"}]
+# SIGNIFICANCE_THRESHOLD=100.0
+# LOG_LEVEL=INFO

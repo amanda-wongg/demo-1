@@ -1,0 +1,36 @@
+{
+  "redash_base_url": "https://your-redash-instance.com",
+  "redash_api_key": "your-redash-api-key-here",
+  "redash_queries": [
+    {
+      "query_id": 123,
+      "name": "BAI2 Bank Balance Check",
+      "description": "Compares BAI2 reported balances with internal records",
+      "additional_params": {
+        "account_type": "operations"
+      }
+    },
+    {
+      "query_id": 124,
+      "name": "Chase Recovery Variance Check",
+      "description": "Monitors known Chase recovery variances",
+      "additional_params": {
+        "exclude_known": true
+      }
+    },
+    {
+      "query_id": 125,
+      "name": "Daily Cash Position Reconciliation",
+      "description": "Reconciles daily cash positions across all accounts"
+    }
+  ],
+  "slack_bot_token": "xoxb-your-slack-bot-token-here",
+  "slack_channel": "#monthly-reconciliations",
+  "significance_threshold": 100.0,
+  "state_storage_path": "state.json",
+  "log_level": "INFO",
+  "query_timeout": 300,
+  "alert_on_system_errors": true,
+  "daily_status_report": false,
+  "status_report_time": "08:00"
+}
