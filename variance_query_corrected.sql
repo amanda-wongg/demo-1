@@ -1,7 +1,7 @@
 with date_params as (
   select 
-    current_date - ((date_part(dow, current_date) + 6) % 7)::int - 1 as start_date,  -- Added -1
-    current_date - ((date_part(dow, current_date) + 2) % 7)::int - 1 as end_date    -- Added -1
+    current_date - 7 as start_date,  -- Last Monday (9/15)
+    current_date - 3 as end_date     -- Last Friday (9/19)
 ),
 cal as 
 (
